@@ -1,0 +1,33 @@
+(* Lexer para Gramática No. 4 *)
+{import numpy as np
+import pandas as pd
+CANT = 1}
+(* Introducir cualquier header aqui *)
+
+let delim = [' ''\t''\n']
+let ws = delim+
+let letter = ['A'-'Z''a'-'z']
+let digit = ['0'-'9']
+let digits = digit+
+let id = letter(letter|digit)*
+let number = digits(.digits)?('E'['+''-']?digits)?
+let cadena = "[^'\"']*"
+
+rule ruleTokens = 
+    ws
+  | id        { print("hola") }               (* Cambie por una acción válida, que devuelva el token *)
+  | number    { print("NUMBER") }
+  | ';'       { print("SEMICOLON") }
+  | ":="      { print("ASSIGNOP") }
+  | '<'       { print("LT") }
+  | "="       { print("EQ") }
+  | '+'       { print("PLUS") }
+  | '-'       { print("MINUS") }
+  | '*'       { print(np.random.rand(CANT + 1,CANT)) }
+  | '/'       { print("DIV") }
+  | '('       { print("LPAREN") }
+  | ')'       { print("RPAREN") }
+  | cadena  { print("cadena") }
+
+(* Introducir cualquier trailer aqui *)
+

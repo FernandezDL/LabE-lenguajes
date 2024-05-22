@@ -1,0 +1,13 @@
+let ID = -
+let PLUS = ['0'-'9']
+let TIMES = -?digito+
+let LPAREN = ['a'-'z''A'-'Z']
+let RPAREN = letra(letra|digito)*10
+
+rule tokens =
+  | ID			{ print("digit\n") }
+  | PLUS			{ print("Numero\n") }
+  | TIMES			{ print("letra\n") }
+  | LPAREN			{ print("identificador\n") }
+  | RPAREN { print("resta") }
+
