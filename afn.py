@@ -2,7 +2,7 @@ import json
 import time
 from nodeTree import alphanum, ArbolExpresion
 from graphviz import Digraph
-from AFDUtils import move
+from afd import move
 
 
 class Estado:

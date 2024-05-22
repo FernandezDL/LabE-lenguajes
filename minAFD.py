@@ -1,6 +1,6 @@
 import json
 from pythomata import SimpleDFA
-from AFDUtils import keyFromValue, simulateDFA
+from afd import keyFromValue, simulateDFA
 
 
 class tempDFA(object):

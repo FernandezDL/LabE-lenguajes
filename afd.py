@@ -1,17 +1,11 @@
 import json
 from pythomata import SimpleDFA
-from AFDUtils import keyFromValue, simulateDFA
+from afd import keyFromValue, simulateDFA
 
 ESTADOS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
-
 class tempNFA(object):
     def __init__(self, filename):
-        """
-        Funcion constructora de la clase tempNFA, esta clase se utiliza para matener el automata finito no determinista
-        que será convertido en automata finito determinista.
-        :param filename:
-        """
         with open(filename, "r", encoding="utf-8") as json_file:
             afn = json.load(json_file)
 
@@ -24,11 +18,6 @@ class tempNFA(object):
 
 class AFD(object):
     def __init__(self, afnFilename):
-        """
-        Funcion constructa de la clase AFD, esta inicializa las variables a utilizar durante el funcionamiento de
-        la construccion del AFD.
-        :param afnFilename: Nombre del archivo donde se encuentra el AFN, se espera un archivo .json
-        """
         self.afn = tempNFA(filename=afnFilename)
 
         self.states = []
@@ -44,11 +33,6 @@ class AFD(object):
         self.NFAtoDFA()
 
     def epsilon_closure(self, states):
-        """
-        Funcion que crea la cerradura epsilon para los estados del AFN que contengan una transicion epsilon.
-        :param states: Lista de estados
-        :return: Lista de estados de la cerradura epsilon.
-        """
         stack, cerradura = set(states), set(states)
 
         while len(stack) != 0:
@@ -64,13 +48,6 @@ class AFD(object):
         return cerradura
 
     def moveTo(self, estados, symbol):
-        """
-        Metodo para moverse dentro de estados dependiendo del simbolo de entrada
-        :param estados: Lista de estados
-        :param symbol: Simbolo de entrada
-        :return:
-        - alcanzables: Lista de estados alcanzables por el simbolo de entrada
-        """
         alcanzables = []
 
         for estado in estados:
@@ -81,10 +58,6 @@ class AFD(object):
         return alcanzables
 
     def subsetConstruction(self):
-        """
-        Funcion que ejecuta la construccion por subconjuntos del AFN para crear el AFD. Utiliza los estados, pasando
-        estos por la cerradura epsilon y luego desarrollando las transiciones entre los estados.
-        """
         Dstates = [self.epsilon_closure([self.afn.initialState])]
         markStates = []
         states = []
@@ -118,7 +91,6 @@ class AFD(object):
                 state_names.append(name)
             return state_names
 
-        # Uso de la función
         self.states = generate_state_names(len(states))
         self.equivalents = {self.states[i]: states[i] for i in range(len(states))}
         final = [state for state in states for final in self.afn.finalStates if final in state]
@@ -127,13 +99,6 @@ class AFD(object):
         self.initialState = [self.states[states.index(state)] for state in states if self.afn.initialState in state]
 
     def translateTransitions(self, transitions):
-        """
-        Funcion que toma las transiciones de un estado del AFN y retorna un diccionario con las nuevas transiciones
-        del estado.
-        :param transitions: Diccionario con las transiciones de un estado del AFN
-        :return:
-        - new_tramsitions : Diccionario con las transcisiones para el estado del AFD.
-        """
         new_transitions = {}
         for key, value in self.equivalents.items():
             value = tuple(value)
@@ -146,22 +111,12 @@ class AFD(object):
         return new_transitions
 
     def keyFromValue(self, search_value):
-        """
-        Metodo que recorre el diccionario de equivalentes para encontrar un valor dentro de los valores del diccionario
-        :param search_value: Valor a buscar
-        :return:
-        - Llave del diccionario en el valor encontrado
-        - [] se retorna si no se encuentra en valor en el diccionario de equivalentes.
-        """
         for key, value in self.equivalents.items():
             if value == search_value:
                 return key
         return []
 
     def writeJSONAFD(self):
-        """
-        Metodo que convierte en AFD en un archivo .json
-        """
         afd = {
             "estados": self.states,
             "alfabeto": self.alphabet,
@@ -174,9 +129,6 @@ class AFD(object):
             json.dump(afd, outfile, indent=6)
 
     def graphDFA(self):
-        """
-        Metodo que grafica el AFD utilizando las librerias de Graphviz, genera un arhivo .svg con una leyenda.
-        """
         alphabet = set(self.alphabet)
         states = set(self.transitions.keys())
         initial_state = self.initialState[0]
@@ -203,20 +155,46 @@ class AFD(object):
         graph.render("./bin/lib/afd/DFA", view=True)
 
     def NFAtoDFA(self):
-        """
-        Metodo que construye el AFD desde el AFN establecido al inicializar la clase Afd.
-        """
         self.subsetConstruction()
         self.writeJSONAFD()
         self.graphDFA()
 
     def simulateDFA(self, string):
-        """
-        Metodo que prepara el AFD para ser simulado.
-        :param string: Cadena a simular
-        :return:
-        - Metodo de simulacion simulateDFA del AFDUtils con los valores para el estado inicial, los estados
-          de aceptacion y las transiciones del AFD
-        """
         return simulateDFA(string=string, initialState=self.initialState[0], finalStates=self.finalStates,
                            transitions=self.transitions)
+
+import time
+
+def keyFromValue(equivalents, search_value):
+    for key, value in equivalents.items():
+        if value == search_value:
+            return key
+    return []
+
+
+def move(s, c, transitions):
+    for state, transitions in transitions.items():
+        if s == state:
+            destiny = transitions.get(c, None)
+            return destiny if destiny and len(destiny) > 0 else None
+
+
+def simulateDFA(string, initialState, finalStates, transitions):
+    inicio = time.time()
+    currState = initialState
+
+    if string != "ε":
+        for char in string:
+            # time.sleep(1)
+            if char == "ε":
+                continue
+            currState = move(s=currState, c=str(ord(char)), transitions=transitions)
+            if currState is None:
+                fin = time.time()
+                return False, "{:.2e}".format(fin - inicio)
+
+    fin = time.time()
+    return currState in finalStates, "{:.2e}".format(fin - inicio)
+
+def step(char, currState, transitions):
+    return transitions.get(currState).get(str(char), None) if transitions.get(currState, None) else None

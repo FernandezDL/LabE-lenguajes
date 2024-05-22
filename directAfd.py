@@ -2,7 +2,7 @@ import json
 import time
 from nodeTree import ArbolExpresion
 from graphviz import Digraph
-from AFDUtils import simulateDFA, step, move
+from afd import simulateDFA, step, move
 
 
 class Dstate(object):
